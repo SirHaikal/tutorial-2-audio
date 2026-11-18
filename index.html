@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QUIZ BLAST — Kuiz Interaktif</title>
+<style>
+:root{--bg:#090d18;--panel:#151d31;--panel2:#202b45;--ink:#f6f8ff;--muted:#aab6ce;--purple:#8b5cf6;--cyan:#22d3ee;--green:#22c55e;--red:#fb5265;--gold:#fbbf24}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#26335a 0,#0b1020 55%,#070a12 100%);font-family:Arial,sans-serif;color:var(--ink);display:grid;place-items:center;padding:18px}
+.app{width:min(100%,680px)}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-size:13px;letter-spacing:3px;color:var(--cyan);font-weight:900}.brand span{color:white}.tools{display:flex;gap:8px}
+button{font:inherit;cursor:pointer;border:0;color:white;transition:transform .12s,filter .12s}button:hover{filter:brightness(1.15);transform:translateY(-2px)}button:active{transform:scale(.97)}
+.tool{background:#273451;border:1px solid #46577d;border-radius:12px;padding:10px 13px;font-weight:bold}
+.card{background:linear-gradient(145deg,#18223aee,#111a2eee);border:1px solid #3a4a70;border-radius:24px;padding:clamp(20px,5vw,34px);box-shadow:0 24px 80px #0008}
+.screen{display:none}.screen.active{display:block}.eyebrow{font-size:12px;letter-spacing:2px;color:var(--cyan);font-weight:bold}.hero{text-align:center;padding:25px 5px}.hero .emoji{font-size:65px;filter:drop-shadow(0 8px 15px #8b5cf688)}h1{font-size:clamp(34px,8vw,54px);margin:12px 0 7px;letter-spacing:2px}h1 em{font-style:normal;color:var(--cyan)}.desc{color:var(--muted);line-height:1.6;max-width:440px;margin:0 auto 25px}
+.primary{background:linear-gradient(100deg,#7c3aed,#2563eb);padding:15px 25px;border-radius:13px;font-weight:900;letter-spacing:1px;box-shadow:0 8px 25px #6d42ed55}.secondary{background:#293754;border:1px solid #4b5c7e;padding:12px 18px;border-radius:12px;font-weight:bold}
+.stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:15px 0}.stat{background:#222e49;padding:9px 13px;border-radius:10px;color:#dce7ff;font-size:12px}
+.progressline{height:9px;background:#29334c;border-radius:20px;overflow:hidden;margin:12px 0 22px}.progressfill{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--cyan));transition:width .3s}
+.qmeta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}.question{font-size:clamp(21px,4.5vw,29px);line-height:1.35;margin:20px 0 24px;font-weight:800}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.answer{min-height:65px;text-align:left;padding:14px;border-radius:13px;background:#263451;border:1px solid #45577c;font-weight:bold;display:flex;align-items:center;gap:12px;font-size:15px}.letter{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;border-radius:9px;background:#405174;color:#dbeafe}.answer.correct{background:#14532d;border-color:#22c55e}.answer.wrong{background:#641f32;border-color:#fb5265}.answer:disabled{cursor:default;transform:none;filter:none}
+.feedback{min-height:54px;margin-top:17px;padding:14px;border-radius:12px;background:#202b43;color:#dbeafe;line-height:1.45;display:none}.feedback.show{display:block}.nextrow{display:flex;justify-content:flex-end;margin-top:15px}
+.result{text-align:center;padding:20px 0}.result .big{font-size:72px}.score{font-size:54px;font-weight:900;color:var(--gold);margin:10px}.small{color:var(--muted);line-height:1.6}
+.footer{text-align:center;color:#8190ad;font-size:11px;margin-top:15px;letter-spacing:1px}
+@media(max-width:520px){.answers{grid-template-columns:1fr}.answer{min-height:57px}.top{align-items:flex-start}.card{border-radius:19px}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">⚡ <span>QUIZ</span> BLAST</div><div class="tools"><button class="tool" id="soundToggle">🔊 SOUND ON</button><button class="tool" id="help">?</button></div></div>
+ <div class="card">
+  <section class="screen active" id="start">
+   <div class="hero"><div class="emoji">🧠⚡</div><div class="eyebrow">CABARAN MINDA BERMULA</div><h1>QUIZ <em>BLAST</em></h1><p class="desc">Jawab 10 soalan dan kumpul markah tertinggi. Setiap klik, jawapan betul dan jawapan salah ada sound effect yang lebih padu!</p>
+   <div class="stats"><span class="stat">🎯 10 SOALAN</span><span class="stat">⚡ 4 PILIHAN</span><span class="stat">🔊 SOUND KUAT</span></div>
+   <button class="primary" id="startBtn">MULA BERMAIN ▶</button></div>
+  </section>
+  <section class="screen" id="game">
+   <div class="qmeta"><span id="qcount">SOALAN 1 / 10</span><span id="scoreText">⭐ MARKAH: 0</span></div>
+   <div class="progressline"><div class="progressfill" id="progress"></div></div>
+   <div class="eyebrow">PILIH JAWAPAN YANG BETUL</div><div class="question" id="question"></div>
+   <div class="answers" id="answers"></div><div class="feedback" id="feedback"></div>
+   <div class="nextrow"><button class="primary" id="nextBtn" style="display:none">SETERUSNYA →</button></div>
+  </section>
+  <section class="screen" id="end"><div class="result"><div class="big" id="resultEmoji">🏆</div><div class="eyebrow">KEPUTUSAN AKHIR</div><h1 id="resultTitle">HEBAT!</h1><div class="score" id="finalScore">0/10</div><p class="small" id="resultText"></p><button class="primary" id="againBtn">MAIN LAGI ↻</button></div></section>
+ </div>
+ <div class="footer">QUIZ BLAST • INTERACTIVE MINI GAME • HTML + CSS + JAVASCRIPT</div>
+</main>
+<script>
+(()=>{
+const data=[
+["Apakah planet yang dikenali sebagai Planet Merah?",["Marikh","Zuhal","Zuhrah","Musytari"],0,"Marikh kelihatan kemerahan kerana permukaannya kaya dengan oksida besi."],
+["Berapakah jumlah sisi pada bentuk heksagon?",["Lima","Enam","Tujuh","Lapan"],1,"Heksagon mempunyai enam sisi."],
+["Apakah organ yang mengepam darah ke seluruh badan?",["Paru-paru","Hati","Jantung","Buah pinggang"],2,"Jantung mengepam darah melalui sistem peredaran darah."],
+["Apakah bahasa utama yang digunakan untuk membina struktur halaman web?",["HTML","MP3","JPEG","PDF"],0,"HTML digunakan untuk membina struktur dan kandungan halaman web."],
+["Negeri manakah terkenal dengan Menara Berkembar Petronas?",["Johor","Perlis","Sabah","Kuala Lumpur"],3,"Menara Berkembar Petronas terletak di Kuala Lumpur."],
+["Apakah unit asas bagi mengukur arus elektrik?",["Volt","Ampere","Watt","Ohm"],1,"Arus elektrik diukur dalam ampere."],
+["Haiwan manakah ialah mamalia?",["Buaya","Katak","Ikan yu","Kelawar"],3,"Kelawar ialah mamalia; ia melahirkan anak dan menyusukan anaknya."],
+["Apakah hasil 9 × 7?",["56","63","72","69"],1,"9 darab 7 bersamaan 63."],
+["Dalam fotografi, apakah maksud ISO?",["Kepekaan sensor terhadap cahaya","Kelajuan shutter","Jarak fokus lensa","Saiz fail gambar"],0,"ISO mengawal kepekaan sensor kamera terhadap cahaya."],
+["Apakah nama proses tumbuhan menghasilkan makanan menggunakan cahaya?",["Penapaian","Penyejatan","Fotosintesis","Respirasi"],2,"Fotosintesis menggunakan tenaga cahaya untuk menghasilkan gula daripada air dan karbon dioksida."]
+];
+let order=[],index=0,score=0,locked=false,sound=true,ctx;
+const $=id=>document.getElementById(id);
+function play(freq,dur=.16,wave="sawtooth",vol=.22,delay=0){
+ if(!sound)return;
+ try{ctx ||= new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
+ let o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;
+ o.type=wave;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+ o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+dur);
+ }catch(e){}
+}
+function sfxClick(){play(780,.07,"square",.2);play(1100,.05,"triangle",.12,.035)}
+function sfxStart(){[330,440,554,740,988].forEach((f,i)=>play(f,.23,"sawtooth",.19,i*.075))}
+function sfxCorrect(){[523,659,784,1047].forEach((f,i)=>play(f,.28,"square",.25,i*.09))}
+function sfxWrong(){[260,210,155].forEach((f,i)=>play(f,.25,"sawtooth",.26,i*.12))}
+function sfxNext(){play(440,.1,"triangle",.2);play(660,.12,"triangle",.2,.08)}
+function sfxFinish(){[392,494,587,784,988].forEach((f,i)=>play(f,.38,"sawtooth",.23,i*.13))}
+function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$(id).classList.add("active")}
+function start(){sfxStart();order=[...data.keys()].sort(()=>Math.random()-.5);index=0;score=0;show("game");render()}
+function render(){
+ locked=false;let q=data[order[index]];$("qcount").textContent=`SOALAN ${index+1} / ${data.length}`;$("scoreText").textContent=`⭐ MARKAH: ${score}`;$("progress").style.width=`${index/data.length*100}%`;$("question").textContent=q[0];$("feedback").className="feedback";$("feedback").textContent="";$("nextBtn").style.display="none";
+ const wrap=$("answers");wrap.innerHTML="";
+ q[1].forEach((label,i)=>{let b=document.createElement("button");b.className="answer";b.innerHTML=`<span class="letter">${"ABCD"[i]}</span><span>${label}</span>`;b.onclick=()=>choose(i,b);wrap.appendChild(b)});
+}
+function choose(choice,btn){
+ if(locked)return;locked=true;sfxClick();const q=data[order[index]],buttons=[...$("answers").children];
+ buttons.forEach(b=>b.disabled=true);const correct=choice===q[2];
+ buttons[q[2]].classList.add("correct");
+ if(correct){score++;sfxCorrect();$("feedback").textContent="✅ BETUL! "+q[3]}
+ else{btn.classList.add("wrong");sfxWrong();$("feedback").textContent="❌ BELUM TEPAT. "+q[3]}
+ $("feedback").classList.add("show");$("scoreText").textContent=`⭐ MARKAH: ${score}`;$("nextBtn").style.display="inline-block";$("nextBtn").textContent=index===data.length-1?"LIHAT KEPUTUSAN 🏆":"SETERUSNYA →";
+}
+function finish(){show("end");$("progress").style.width="100%";$("finalScore").textContent=`${score}/${data.length}`;let pct=score/data.length;
+ $("resultEmoji").textContent=pct===1?"👑":pct>=.7?"🏆":pct>=.4?"🔥":"💪";$("resultTitle").textContent=pct===1?"PERFECT!":pct>=.7?"HEBAT!":pct>=.4?"BOLEH TAHAN!":"CUBA LAGI!";
+ $("resultText").textContent=pct===1?"Semua jawapan tepat. Memang padu!":`Anda menjawab ${score} daripada ${data.length} soalan dengan betul. Teruskan berlatih untuk skor lebih tinggi!`;sfxFinish();}
+ $("startBtn").onclick=()=>{sfxClick();start()};
+ $("nextBtn").onclick=()=>{sfxNext();index++;if(index>=data.length)finish();else render()};
+ $("againBtn").onclick=()=>{sfxClick();start()};
+ $("soundToggle").onclick=()=>{sound=!sound;$("soundToggle").textContent=sound?"🔊 SOUND ON":"🔇 SOUND OFF";if(sound)sfxClick()};
+ $("help").onclick=()=>{sfxClick();alert("Cara bermain:\n1. Tekan MULA BERMAIN.\n2. Pilih satu jawapan daripada A, B, C atau D.\n3. Setiap jawapan betul mendapat 1 markah.\n4. Jawab 10 soalan untuk melihat keputusan.\n\nTip: Naikkan volume komputer untuk dengar sound effect dengan lebih jelas.")};
+})();
+</script>
+</body></html>
